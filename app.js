@@ -167,6 +167,30 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// DELETE /pacotes/{id}
+router.delete("/pacotes/:id", async function (req, res, next) {
+  const { id } = req.params;
+
+  try {
+    const db = await connect();
+
+    const result = await db
+      .collection("pacotes")
+      .findOne({ _id: new ObjectId(id) }, {});
+
+    if (!result) {
+      return res.status(404).json({ message: "Pacote não encontrado" });
+    }
+
+    await db.collection("pacotes").deleteOne({ _id: new ObjectId(id) });
+
+    return res.status(204).json();
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
 app.use("/", router);
 
 //inicia o servidor

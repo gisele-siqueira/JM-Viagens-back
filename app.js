@@ -53,21 +53,6 @@ router.get("/aluno/:id?", async function (req, res, next) {
   }
 });
 
-router.get("/pacotes", async function (req, res, next) {
-  try {
-    const db = await connect();
-
-    const pacotes = await db.collection("pacotes").find();
-    const listaPacotes = [];
-    for await (const pacote of pacotes) {
-      listaPacotes.push(pacote);
-    }
-    return res.json(listaPacotes);
-  } catch (ex) {
-    console.log(ex);
-    res.status(400).json({ erro: `${ex}` });
-  }
-});
 
 // POST /aluno
 router.post("/aluno", async function (req, res, next) {
@@ -112,7 +97,7 @@ router.delete("/aluno/:id", async function (req, res, next) {
   }
 });
 
-// Rota para o cadastro de usuário
+// POST Rota para o cadastro de usuário
 router.post("/cadastro", async (req, res) => {
   // Obtenha os dados do usuário a partir do corpo da requisição
   const { nome, username, senha, email, endereco, pais, estado, cep } =
@@ -139,6 +124,76 @@ router.post("/cadastro", async (req, res) => {
     res.status(500).json({ erro: "Erro ao cadastrar usuário" });
   }
 });
+
+// PUT - Atualização cadastro
+router.put("/atualizar-usuario", async (req, res) => {
+  const {emailalterar, updateEndereco, updateSenha } = req.body;
+  
+
+  try {
+    const db = await connect();
+    const collection = db.collection("cadastro");
+
+    const result = await collection.updateOne(
+      { email: emailalterar },
+      { $set: { endereco: updateEndereco, senha: updateSenha } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    res.status(200).json({ message: "Usuário atualizado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).json({ message: "Erro ao atualizar usuário" });
+  }
+});
+
+module.exports = router;
+
+//GET Usuario cadastrado
+router.get("/listacadastrados", async function (req, res, next) {
+  try {
+    const db = await connect();
+
+    const cadastrados = await db.collection("cadastro").find();
+    const listaCadastrados = [];
+    for await (const cadastrado of cadastrados ) {
+      listaCadastrados.push(cadastrado);
+    }
+    return res.json(listaCadastrados);
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
+//Delete de usuario cadastrado
+router.delete("/deletarusuario/:email", async function (req, res, next) {
+  const { email } = req.params;
+
+  try {
+    const db = await connect();
+
+    const result = await db
+      .collection("cadastro")
+      .findOne({ email:email }, {});
+
+    if (!result) {
+      return res.status(404).json({ message: "Usuario não encontrado" });
+    }
+
+    await db.collection("cadastro").deleteOne({ email:email });
+
+    return res.status(204).json({message:"Usuário deletado"});
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
+//Post login
 
 router.post("/login", async (req, res) => {
   // Obtenha os dados do usuário a partir do corpo da requisição
@@ -167,6 +222,23 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//GET Pacotes
+router.get("/pacotes", async function (req, res, next) {
+  try {
+    const db = await connect();
+
+    const pacotes = await db.collection("pacotes").find();
+    const listaPacotes = [];
+    for await (const pacote of pacotes) {
+      listaPacotes.push(pacote);
+    }
+    return res.json(listaPacotes);
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
 // DELETE /pacotes/{id}
 router.delete("/pacotes/:id", async function (req, res, next) {
   const { id } = req.params;
@@ -190,6 +262,33 @@ router.delete("/pacotes/:id", async function (req, res, next) {
     res.status(400).json({ erro: `${ex}` });
   }
 });
+
+//PUT Pacotes
+router.put("/atualizarpacotes", async (req, res) => {
+  const {emailalterar, updateEndereco, updateSenha } = req.body;
+  
+
+  try {
+    const db = await connect();
+    const collection = db.collection("cadastro");
+
+    const result = await collection.updateOne(
+      { email: emailalterar },
+      { $set: { endereco: updateEndereco, senha: updateSenha } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    res.status(200).json({ message: "Usuário atualizado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).json({ message: "Erro ao atualizar usuário" });
+  }
+});
+
+
 
 app.use("/", router);
 

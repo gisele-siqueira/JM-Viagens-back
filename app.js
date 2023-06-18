@@ -263,28 +263,50 @@ router.delete("/pacotes/:id", async function (req, res, next) {
   }
 });
 
+// POST Pacotes
+router.post("/inserirpacotes", async function (req, res, next) {
+  try {
+    const novoPacote = req.body; // Obtém o novo pacote enviado no corpo da requisição
+    const db = await connect();
+
+    // Insere o novo pacote na coleção "pacotes"
+    const resultado = await db.collection("pacotes").insertOne(novoPacote);
+
+    if (resultado.insertedCount === 1) {
+      // Sucesso ao inserir o pacote
+      return res.status(201).json({ mensagem: "Pacote cadastrado com sucesso!" });
+    } else {
+      // Falha ao inserir o pacote
+      return res.status(500).json({ erro: "Ocorreu um erro ao cadastrar o pacote." });
+    }
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
 //PUT Pacotes
+// PUT Atualizar Pacotes
 router.put("/atualizarpacotes", async (req, res) => {
-  const {emailalterar, updateEndereco, updateSenha } = req.body;
-  
+  const { nomealterar, updateOrigem, updateData } = req.body;
 
   try {
     const db = await connect();
-    const collection = db.collection("cadastro");
+    const collection = db.collection("pacotes");
 
     const result = await collection.updateOne(
-      { email: emailalterar },
-      { $set: { endereco: updateEndereco, senha: updateSenha } }
+      { nome: nomealterar },
+      { $set: { origem: updateOrigem, data: updateData } }
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      return res.status(404).json({ message: "Pacote não encontrado" });
     }
 
-    res.status(200).json({ message: "Usuário atualizado com sucesso" });
+    res.status(200).json({ message: "Pacote atualizado com sucesso" });
   } catch (error) {
-    console.error("Erro ao atualizar usuário:", error);
-    res.status(500).json({ message: "Erro ao atualizar usuário" });
+    console.error("Erro ao atualizar pacote:", error);
+    res.status(500).json({ message: "Erro ao atualizar pacote" });
   }
 });
 

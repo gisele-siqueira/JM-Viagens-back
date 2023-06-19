@@ -277,7 +277,7 @@ router.post("/inserirpacotes", async function (req, res, next) {
       return res.status(201).json({ mensagem: "Pacote cadastrado com sucesso!" });
     } else {
       // Falha ao inserir o pacote
-      return res.status(500).json({ erro: "Ocorreu um erro ao cadastrar o pacote." });
+      return res.status(500).json({ erro: "Ok." });
     }
   } catch (ex) {
     console.log(ex);
@@ -307,6 +307,95 @@ router.put("/atualizarpacotes", async (req, res) => {
   } catch (error) {
     console.error("Erro ao atualizar pacote:", error);
     res.status(500).json({ message: "Erro ao atualizar pacote" });
+  }
+});
+
+//Post Hoteis
+router.post("/inserirhotel", async function (req, res, next) {
+  try {
+    const novoHotel = req.body; // Obtém o novo pacote enviado no corpo da requisição
+    const db = await connect();
+
+    // Insere o novo pacote na coleção "pacotes"
+    const resultado = await db.collection("hotel").insertOne(novoHotel);
+
+    if (resultado.insertedCount === 1) {
+      // Sucesso ao inserir o pacote
+      return res.status(201).json({ mensagem: "Hotel cadastrado com sucesso!" });
+    } else {
+      // Falha ao inserir o pacote
+      return res.status(500).json({ erro: "OK." });
+    }
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
+//PUT Hoteis
+// PUT Atualizar Hoteis
+router.put("/atualizarhotel", async (req, res) => {
+  const { nomehotelalterar, novadiaria } = req.body;
+
+  try {
+    const db = await connect();
+    const collection = db.collection("hotel");
+
+    const result = await collection.updateOne(
+      { nome: nomehotelalterar },
+      { $set: { diaria: novadiaria } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "Hotel não encontrado" });
+    }
+
+    res.status(200).json({ message: "Hotel atualizado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao atualizar hotel:", error);
+    res.status(500).json({ message: "Erro ao atualizar hotel" });
+  }
+});
+// DELETE Hoteis
+router.delete("/deletarhotel/:nomehotel", async function (req, res, next) {
+  const { nomehotel } = req.params;
+
+  try {
+    const db = await connect();
+
+    const result = await db
+      .collection("hotel")
+      .findOne({ nome: nomehotel }, {});
+
+    if (!result) {
+      return res.status(404).json({ message: "Hotel não encontrado" });
+    }
+
+    await db.collection("hotel").deleteOne({ nome: nomehotel });
+
+    return res.status(204).json({ message: "Hotel deletado" });
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
+  }
+});
+
+
+
+//GET Hoteis
+router.get("/listahoteis", async function (req, res, next) {
+  try {
+    const db = await connect();
+
+    const hoteis = await db.collection("hotel").find().toArray();
+    const listaHoteis = [];
+    for await (const hotel of hoteis) {
+      listaHoteis.push(hotel);
+    }
+    return res.json(listaHoteis);
+  } catch (ex) {
+    console.log(ex);
+    res.status(400).json({ erro: `${ex}` });
   }
 });
 
